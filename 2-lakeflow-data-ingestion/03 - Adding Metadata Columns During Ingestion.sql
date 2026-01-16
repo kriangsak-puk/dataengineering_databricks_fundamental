@@ -29,53 +29,13 @@
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ## REQUIRED - SELECT CLASSIC COMPUTE
 -- MAGIC
--- MAGIC Before executing cells in this notebook, please select your classic compute cluster in the lab. Be aware that **Serverless** is enabled by default and you have a Shared SQL warehouse.
+-- MAGIC ## Setup
 -- MAGIC
--- MAGIC <!-- ![Select Cluster](./Includes/images/selecting_cluster_info.png) -->
--- MAGIC
--- MAGIC Follow these steps to select the classic compute cluster:
--- MAGIC
--- MAGIC
--- MAGIC 1. Navigate to the top-right of this notebook and click the drop-down menu to select your cluster. By default, the notebook will use **Serverless**.
--- MAGIC
--- MAGIC 2. If your cluster is available, select it and continue to the next cell. If the cluster is not shown:
--- MAGIC
--- MAGIC    - Click **More** in the drop-down.
--- MAGIC
--- MAGIC    - In the **Attach to an existing compute resource** window, use the first drop-down to select your unique cluster.
--- MAGIC
--- MAGIC **NOTE:** If your cluster has terminated, you might need to restart it in order to select it. To do this:
--- MAGIC
--- MAGIC 1. Right-click on **Compute** in the left navigation pane and select *Open in new tab*.
--- MAGIC
--- MAGIC 2. Find the triangle icon to the right of your compute cluster name and click it.
--- MAGIC
--- MAGIC 3. Wait a few minutes for the cluster to start.
--- MAGIC
--- MAGIC 4. Once the cluster is running, complete the steps above to select your cluster.
 
 -- COMMAND ----------
 
--- MAGIC %md
--- MAGIC
--- MAGIC ## A. Classroom Setup
--- MAGIC
--- MAGIC Run the following cell to configure your working environment for this notebook.
--- MAGIC
--- MAGIC **NOTE:** The `DA` object is only used in Databricks Academy courses and is not available outside of these courses. It will dynamically reference the information needed to run the course in the lab environment.
-
--- COMMAND ----------
-
--- MAGIC %run ./Includes/Classroom-Setup-03
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC Run the cell below to view your default catalog and schema. Notice that your default catalog is **dbacademy** and your default schema is your unique **labuser** schema.
--- MAGIC
--- MAGIC **NOTE:** The default catalog and schema are pre-configured for you to avoid the need to specify the three-level name when writing your tables to your **labuser** schema (i.e., catalog.schema.table).
+-- MAGIC %run ./_resources/00-setup $reset_all_data=false
 
 -- COMMAND ----------
 
@@ -100,8 +60,8 @@ SELECT current_catalog(), current_schema()
 
 -- COMMAND ----------
 
--- DBTITLE 1,List files in a raw/users-historical volume
-LIST '/Volumes/dbacademy_ecommerce/v01/raw/users-historical'
+-- DBTITLE 1,List files in a raw data
+LIST '/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/'
 
 -- COMMAND ----------
 
@@ -117,7 +77,7 @@ LIST '/Volumes/dbacademy_ecommerce/v01/raw/users-historical'
 -- MAGIC
 -- MAGIC During data ingestion, we'll perform the following actions:
 -- MAGIC
--- MAGIC 1. Convert the parquet Unix timestamp to a `DATE` column.
+-- MAGIC 1. Convert the parquet string datetime to a `timestamp` column.
 -- MAGIC
 -- MAGIC 2. Include the **input file name** to indicate the data raw source.
 -- MAGIC
@@ -131,15 +91,15 @@ LIST '/Volumes/dbacademy_ecommerce/v01/raw/users-historical'
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 1. Run the cell below to display the parquet data in the `"/Volumes/dbacademy_ecommerce/v01/raw/users-historical"` volume and view the results.
+-- MAGIC 1. Run the cell below to display the parquet data in the `"/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/"` volume and view the results.
 -- MAGIC
--- MAGIC     Notice that the **user_first_touch_timestamp** column has a Unix timestamp.
+-- MAGIC     Notice that the **creation_date** column has a string.
 
 -- COMMAND ----------
 
 SELECT *
 FROM read_files(
-  "/Volumes/dbacademy_ecommerce/v01/raw/users-historical",
+  '/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/',
   format => 'parquet')
 LIMIT 10;
 
@@ -147,27 +107,17 @@ LIMIT 10;
 
 -- MAGIC %md
 -- MAGIC
--- MAGIC ### C1. Convert the Unix Time on Ingestion to Bronze
+-- MAGIC ### C1. Convert the string datetime on Ingestion to Bronze.
 -- MAGIC
--- MAGIC The Unix timestamp column **user_first_touch_timestamp** values represent the time in microseconds since the Unix epoch (January 1, 1970).
--- MAGIC
--- MAGIC To create a readable date column, use the [`from_unixtime()`](https://docs.databricks.com/en/sql/language-manual/functions/from_unixtime.html) function, converting the **user_first_touch_timestamp** from microseconds to seconds by dividing by 1,000,000.
-
--- COMMAND ----------
-
--- MAGIC %md
--- MAGIC 1. Run the query and review the results. The query generates a new column, **first_touch_date**, by converting the Unix timestamp into a human-readable date column.
--- MAGIC
--- MAGIC    Run the cell and view the **first_touch_date** column. Notice the **first_touch_date** column is cast to a data type of **DATE**.
 
 -- COMMAND ----------
 
 -- DBTITLE 1,Convert UNIX timestamp
 SELECT
   *,
-  cast(from_unixtime(user_first_touch_timestamp/1000000) AS DATE) AS first_touch_date
+  to_timestamp(creation_date , 'MM-dd-yyyy HH:mm:ss') AS creation_date_converted
 FROM read_files(
-  "/Volumes/dbacademy_ecommerce/v01/raw/users-historical",
+  "/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/",
   format => 'parquet')
 LIMIT 10;
 
@@ -206,12 +156,12 @@ LIMIT 10;
 -- DBTITLE 1,Add metadata columns
 SELECT
   *,
-  cast(from_unixtime(user_first_touch_timestamp / 1000000) AS DATE) AS first_touch_date,
+  to_timestamp(creation_date , 'MM-dd-yyyy HH:mm:ss') AS creation_date_converted,
   _metadata.file_modification_time AS file_modification_time,      -- Last data source file modification time
   _metadata.file_name AS source_file,                              -- Ingest data source file name
   current_timestamp() as ingestion_time                            -- Ingestion timestamp
 FROM read_files(
-  "/Volumes/dbacademy_ecommerce/v01/raw/users-historical",
+  "/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/",
   format => 'parquet')
 LIMIT 10;
 
@@ -223,7 +173,7 @@ LIMIT 10;
 -- MAGIC
 -- MAGIC     Run the cell to create and view the new table **historical_users_bronze**.
 -- MAGIC     
--- MAGIC     Confirm that the new columns **first_touch_date**, **file_modification_time**, **source_file** and **ingestion_time** were created successfully in the bronze table.
+-- MAGIC     Confirm that the new columns **creation_date_converted**, **file_modification_time**, **source_file** and **ingestion_time** were created successfully in the bronze table.
 
 -- COMMAND ----------
 
@@ -236,12 +186,12 @@ DROP TABLE IF EXISTS historical_users_bronze;
 CREATE TABLE historical_users_bronze AS
 SELECT
   *,
-  cast(from_unixtime(user_first_touch_timestamp / 1000000) AS DATE) AS first_touch_date,
+  to_timestamp(creation_date , 'MM-dd-yyyy HH:mm:ss') AS creation_date_converted,
   _metadata.file_modification_time AS file_modification_time,      -- Last data source file modification time
   _metadata.file_name AS source_file,                              -- Ingest data source file name
   current_timestamp() as ingestion_time                            -- Ingestion timestamp
 FROM read_files(
-  "/Volumes/dbacademy_ecommerce/v01/raw/users-historical",
+  "/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/",
   format => 'parquet');
 
 
@@ -279,20 +229,20 @@ ORDER BY source_file;
 
 -- MAGIC %python
 -- MAGIC
--- MAGIC from pyspark.sql.functions import col, from_unixtime, current_timestamp
+-- MAGIC from pyspark.sql.functions import col, to_timestamp, current_timestamp
 -- MAGIC from pyspark.sql.types import DateType
 -- MAGIC
 -- MAGIC # 1. Read parquet files in cloud storage into a Spark DataFrame
 -- MAGIC df = (spark
 -- MAGIC       .read
 -- MAGIC       .format("parquet")
--- MAGIC       .load("/Volumes/dbacademy_ecommerce/v01/raw/users-historical")
+-- MAGIC       .load("/Volumes/main/dbdemos_data_ingestion/raw_data/user_parquet/")
 -- MAGIC     )
 -- MAGIC
 -- MAGIC
 -- MAGIC # 2. Add metadata columns
 -- MAGIC df_with_metadata = (
--- MAGIC     df.withColumn("first_touch_date", from_unixtime(col("user_first_touch_timestamp") / 1_000_000).cast(DateType()))
+-- MAGIC     df.withColumn("creation_date_converted", to_timestamp("creation_date", "MM-dd-yyyy HH:mm:ss"))
 -- MAGIC       .withColumn("file_modification_time", col("_metadata.file_modification_time"))
 -- MAGIC       .withColumn("source_file", col("_metadata.file_name"))
 -- MAGIC       .withColumn("ingestion_time", current_timestamp())
@@ -304,12 +254,12 @@ ORDER BY source_file;
 -- MAGIC  .write
 -- MAGIC  .format("delta")
 -- MAGIC  .mode("overwrite")
--- MAGIC  .saveAsTable(f"dbacademy.{DA.schema_name}.historical_users_bronze_python_metadata")
+-- MAGIC  .saveAsTable("workspace.default.historical_users_bronze_python_metadata")
 -- MAGIC )
 -- MAGIC
 -- MAGIC
 -- MAGIC # 4. Read and display the table
--- MAGIC historical_users_bronze_python_metadata = spark.table(f"dbacademy.{DA.schema_name}.historical_users_bronze_python_metadata")
+-- MAGIC historical_users_bronze_python_metadata = spark.table("workspace.default.historical_users_bronze_python_metadata")
 -- MAGIC
 -- MAGIC display(historical_users_bronze_python_metadata)
 
