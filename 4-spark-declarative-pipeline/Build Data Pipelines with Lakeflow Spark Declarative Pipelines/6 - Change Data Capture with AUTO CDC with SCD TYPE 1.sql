@@ -36,42 +36,349 @@
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC ## REQUIRED - SELECT CLASSIC COMPUTE (your cluster starts with **labuser**)
+-- MAGIC ## Setup
 -- MAGIC
--- MAGIC Before executing cells in this notebook, please select your classic compute cluster in the lab. Be aware that **Serverless** is enabled by default.
--- MAGIC
--- MAGIC Follow these steps to select the classic compute cluster:
--- MAGIC
--- MAGIC 1. Navigate to the top-right of this notebook and click the drop-down menu to select your cluster. By default, the notebook will use **Serverless**.
--- MAGIC
--- MAGIC 1. If your cluster is available, select it and continue to the next cell. If the cluster is not shown:
--- MAGIC
--- MAGIC     - In the drop-down, select **More**.
--- MAGIC
--- MAGIC     - In the **Attach to an existing compute resource** pop-up, select the first drop-down. You will see a unique cluster name in that drop-down. Please select that cluster.
--- MAGIC
--- MAGIC **NOTE:** If your cluster has terminated, you might need to restart it in order to select it. To do this:
--- MAGIC
--- MAGIC 1. Right-click on **Compute** in the left navigation pane and select *Open in new tab*.
--- MAGIC
--- MAGIC 1. Find the triangle icon to the right of your compute cluster name and click it.
--- MAGIC
--- MAGIC 1. Wait a few minutes for the cluster to start.
--- MAGIC
--- MAGIC 1. Once the cluster is running, complete the steps above to select your cluster.
 
 -- COMMAND ----------
 
--- MAGIC %md
--- MAGIC ## A. Classroom Setup
+-- MAGIC %python
+-- MAGIC import json
+-- MAGIC import os
+-- MAGIC import json
+-- MAGIC from databricks.sdk import WorkspaceClient
 -- MAGIC
--- MAGIC Run the following cell to configure your working environment for this course. This setup will reset your volume to one JSON file in each directory.
 -- MAGIC
--- MAGIC **NOTE:** The `DA` object is only used in Databricks Academy courses and is not available outside of these courses. It will dynamically create and reference the information needed to run the course.
+-- MAGIC def create_declarative_pipeline(pipeline_name: str, 
+-- MAGIC                         root_path_folder_name: str,
+-- MAGIC                         source_folder_names: list = [],
+-- MAGIC                         catalog_name: str = 'dbacademy',
+-- MAGIC                         schema_name: str = 'default',
+-- MAGIC                         serverless: bool = True,
+-- MAGIC                         configuration: dict = {},
+-- MAGIC                         continuous: bool = False,
+-- MAGIC                         photon: bool = True,
+-- MAGIC                         channel: str = 'PREVIEW',
+-- MAGIC                         development: bool = True,
+-- MAGIC                         pipeline_type = 'WORKSPACE'
+-- MAGIC                         ):
+-- MAGIC   
+-- MAGIC     '''
+-- MAGIC   Creates the specified DLT pipeline.
+-- MAGIC
+-- MAGIC   Parameters:
+-- MAGIC   ----------
+-- MAGIC   pipeline_name : str
+-- MAGIC       The name of the DLT pipeline to be created.
+-- MAGIC   root_path_folder_name : str
+-- MAGIC       The root folder name where the pipeline will be located. This folder must be in the location where this function is called.
+-- MAGIC   source_folder_names : list, optional
+-- MAGIC       A list of source folder names. Must defined at least one folder within the root folder location above.
+-- MAGIC   catalog_name : str, optional
+-- MAGIC       The catalog name for the DLT pipeline. Default is 'dbacademy'.
+-- MAGIC   schema_name : str, optional
+-- MAGIC       The schema name for the DLT pipeline. Default is 'default'.
+-- MAGIC   serverless : bool, optional
+-- MAGIC       If True, the pipeline will be serverless. Default is True.
+-- MAGIC   configuration : dict, optional
+-- MAGIC       A dictionary of configuration settings for the pipeline. Default is an empty dictionary.
+-- MAGIC   continuous : bool, optional
+-- MAGIC       If True, the pipeline will be run in continuous mode. Default is False.
+-- MAGIC   photon : bool, optional
+-- MAGIC       If True, the pipeline will use Photon for processing. Default is True.
+-- MAGIC   channel : str, optional
+-- MAGIC       The channel for the pipeline, such as 'PREVIEW'. Default is 'PREVIEW'.
+-- MAGIC   development : bool, optional
+-- MAGIC       If True, the pipeline will be set up for development. Default is True.
+-- MAGIC   pipeline_type : str, optional
+-- MAGIC       The type of the pipeline (e.g., 'WORKSPACE'). Default is 'WORKSPACE'.
+-- MAGIC
+-- MAGIC   Returns:
+-- MAGIC   -------
+-- MAGIC   None
+-- MAGIC       This function does not return anything. It creates the DLT pipeline based on the provided parameters.
+-- MAGIC
+-- MAGIC   Example:
+-- MAGIC   --------
+-- MAGIC   create_dlt_pipeline(pipeline_name='my_pipeline_name', 
+-- MAGIC                       root_path_folder_name='6 - Putting a DLT Pipeline in Production Project',
+-- MAGIC                       source_folder_names=['orders', 'status'])
+-- MAGIC   '''
+-- MAGIC   
+-- MAGIC     w = WorkspaceClient()
+-- MAGIC     for pipeline in w.pipelines.list_pipelines():
+-- MAGIC         if pipeline.name == pipeline_name:
+-- MAGIC             raise ValueError(f"Lakeflow Declarative Pipeline name '{pipeline_name}' already exists. Please delete the pipeline using the UI and rerun the cell to recreate the pipeline.")
+-- MAGIC
+-- MAGIC     ## Create empty dictionary
+-- MAGIC     create_dlt_pipeline_call = {}
+-- MAGIC
+-- MAGIC     ## Pipeline type
+-- MAGIC     create_dlt_pipeline_call['pipeline_type'] = pipeline_type
+-- MAGIC
+-- MAGIC     ## Modify dictionary for specific DLT configurations
+-- MAGIC     create_dlt_pipeline_call['name'] = pipeline_name
+-- MAGIC
+-- MAGIC     ## Set paths to root and source folders
+-- MAGIC     main_course_folder_path = os.getcwd()
+-- MAGIC
+-- MAGIC     main_path_to_dlt_project_folder = os.path.join('/', main_course_folder_path, root_path_folder_name)
+-- MAGIC     create_dlt_pipeline_call['root_path'] = main_path_to_dlt_project_folder
+-- MAGIC
+-- MAGIC     ## Add path of root folder to source folder names
+-- MAGIC     add_path_to_folder_names = [os.path.join(main_path_to_dlt_project_folder, folder_name, '**') for folder_name in source_folder_names]
+-- MAGIC     source_folders_path = [{'glob':{'include':folder_name}} for folder_name in add_path_to_folder_names]
+-- MAGIC     create_dlt_pipeline_call['libraries'] = source_folders_path
+-- MAGIC
+-- MAGIC     ## Set default catalog and schema
+-- MAGIC     create_dlt_pipeline_call['catalog'] = catalog_name
+-- MAGIC     create_dlt_pipeline_call['schema'] = schema_name
+-- MAGIC
+-- MAGIC     ## Set serverless compute
+-- MAGIC     create_dlt_pipeline_call['serverless'] = serverless
+-- MAGIC
+-- MAGIC     ## Set configuration parameters
+-- MAGIC     create_dlt_pipeline_call['configuration'] = configuration
+-- MAGIC
+-- MAGIC     ## Set if continouous or not
+-- MAGIC     create_dlt_pipeline_call['continuous'] = continuous 
+-- MAGIC
+-- MAGIC     ## Set to use Photon
+-- MAGIC     create_dlt_pipeline_call['photon'] = photon
+-- MAGIC
+-- MAGIC     ## Set DLT channel
+-- MAGIC     create_dlt_pipeline_call['channel'] = channel
+-- MAGIC
+-- MAGIC     ## Set if development mode
+-- MAGIC     create_dlt_pipeline_call['development'] = development
+-- MAGIC
+-- MAGIC     ## Creat DLT pipeline
+-- MAGIC
+-- MAGIC     print(f"Creating the Lakeflow Declarative Pipeline '{pipeline_name}'...")
+-- MAGIC     print(f"Root folder path: {main_path_to_dlt_project_folder}")
+-- MAGIC     print(f"Source folder path(s): {source_folders_path}")
+-- MAGIC
+-- MAGIC     w.api_client.do('POST', '/api/2.0/pipelines', body=create_dlt_pipeline_call)
+-- MAGIC     print(f"\nLakeflow Declarative Pipeline Creation '{pipeline_name}' Complete!")
 
 -- COMMAND ----------
 
--- MAGIC %run ./Includes/Classroom-Setup-6
+-- MAGIC %python
+-- MAGIC def create_volume(in_catalog: str, in_schema: str, volume_name: str):
+-- MAGIC     '''
+-- MAGIC     Create a volume in the specified catalog.schema.
+-- MAGIC     '''
+-- MAGIC     print(f'Creating volume: {in_catalog}.{in_schema}.{volume_name} if not exists.\n')
+-- MAGIC     r = spark.sql(f'CREATE VOLUME IF NOT EXISTS {in_catalog}.{in_schema}.{volume_name}')
+-- MAGIC
+-- MAGIC def create_schemas(in_catalog: str, schema_names: list):
+-- MAGIC     '''
+-- MAGIC     Create schemas for the course in the specified catalog. Use DA.catalog_name in vocareum.
+-- MAGIC
+-- MAGIC     If the schemas do not exist in the environment it will creates the schemas based the user's schema_name list.
+-- MAGIC
+-- MAGIC     Parameters:
+-- MAGIC     - schema_names (list): A list of strings representing schema names to creates.
+-- MAGIC
+-- MAGIC     Returns:
+-- MAGIC         Log information:
+-- MAGIC             - If schemas(s) do not exist, prints information on the schemas it created.
+-- MAGIC             - If schemas(s) exist, prints information that schemas exist.
+-- MAGIC
+-- MAGIC     Example:
+-- MAGIC     -------
+-- MAGIC     - create_schemas(in_catalog = DA.catalog_name, schema_names = ['1_bronze', '2_silver', '3_gold'])
+-- MAGIC     '''
+-- MAGIC
+-- MAGIC     ## Current schemas in catalog
+-- MAGIC     list_of_curr_schemas = spark.sql(f'SHOW SCHEMAS IN {in_catalog}').toPandas().databaseName.to_list()
+-- MAGIC
+-- MAGIC     # Create schema in catalog if not exists
+-- MAGIC     for schema in schema_names:
+-- MAGIC         if schema not in list_of_curr_schemas:
+-- MAGIC             print(f'Creating schema: {in_catalog}.{schema}.')
+-- MAGIC             spark.sql(f'CREATE SCHEMA IF NOT EXISTS {in_catalog}.{schema}')
+-- MAGIC         else:
+-- MAGIC             print(f'Schema {in_catalog}.{schema} already exists. No action taken.')
+-- MAGIC def delete_source_files(source_files: str):
+-- MAGIC     """
+-- MAGIC     Deletes all files in the specified source volume.
+-- MAGIC
+-- MAGIC     This function iterates through all the files in the given volume,
+-- MAGIC     deletes them, and prints the name of each file being deleted.
+-- MAGIC
+-- MAGIC     Parameters:
+-- MAGIC     - source_files : str
+-- MAGIC         The path to the volume containing the files to delete. 
+-- MAGIC         Use the {DA.paths.working_dir} to dynamically navigate to the user's volume location in dbacademy/ops/vocareumlab@name:
+-- MAGIC             Example: DA.paths.working_dir = /Volumes/dbacademy/ops/vocareumlab@name
+-- MAGIC
+-- MAGIC     Returns:
+-- MAGIC     - None. This function does not return any value. It performs file deletion and prints all files that it deletes. If no files are found it prints in the output.
+-- MAGIC
+-- MAGIC     Example:
+-- MAGIC     - delete_source_files(f'{DA.paths.working_dir}/pii/stream_source/user_reg')
+-- MAGIC     """
+-- MAGIC
+-- MAGIC     import os
+-- MAGIC
+-- MAGIC     print(f'\nSearching for files in {source_files} volume to delete prior to creating files...')
+-- MAGIC     if os.path.exists(source_files):
+-- MAGIC         list_of_files = sorted(os.listdir(source_files))
+-- MAGIC     else:
+-- MAGIC         list_of_files = None
+-- MAGIC
+-- MAGIC     if not list_of_files:  # Checks if the list is empty.
+-- MAGIC         print(f"No files found in {source_files}.\n")
+-- MAGIC     else:
+-- MAGIC         for file in list_of_files:
+-- MAGIC             file_to_delete = source_files + file
+-- MAGIC             print(f'Deleting file: {file_to_delete}')
+-- MAGIC             dbutils.fs.rm(file_to_delete)
+-- MAGIC def copy_files(copy_from: str, copy_to: str, n: int, sleep=2):
+-- MAGIC     '''
+-- MAGIC     Copy files from one location to another destination's volume.
+-- MAGIC
+-- MAGIC     This method performs the following tasks:
+-- MAGIC       1. Lists files in the source directory and sorts them. Sorted to keep them in the same order when copying for consistency.
+-- MAGIC       2. Verifies that the source directory has at least `n` files.
+-- MAGIC       3. Copies files from the source to the destination, skipping files already present at the destination.
+-- MAGIC       4. Pauses for `sleep` seconds after copying each file.
+-- MAGIC       5. Stops after copying `n` files or if all files are processed.
+-- MAGIC       6. Will print information on the files copied.
+-- MAGIC     
+-- MAGIC     Parameters
+-- MAGIC     - copy_from (str): The source directory where files are to be copied from.
+-- MAGIC     - copy_to (str): The destination directory where files will be copied to.
+-- MAGIC     - n (int): The number of files to copy from the source. If n is larger than total files, an error is returned.
+-- MAGIC     - sleep (int, optional): The number of seconds to pause after copying each file. Default is 2 seconds.
+-- MAGIC
+-- MAGIC     Returns:
+-- MAGIC     - None: Prints information to the log on what files it's loading. If the file exists, it skips that file.
+-- MAGIC
+-- MAGIC     Example:
+-- MAGIC     - copy_files(copy_from='/Volumes/gym_data/v01/user-reg', 
+-- MAGIC            copy_to=f'{DA.paths.working_dir}/pii/stream_source/user_reg',
+-- MAGIC            n=1)
+-- MAGIC     '''
+-- MAGIC     import os
+-- MAGIC     import time
+-- MAGIC
+-- MAGIC     print(f"\n----------------Loading files to user's volume: '{copy_to}'----------------")
+-- MAGIC
+-- MAGIC     ## List all files in the copy_from volume and sort the list
+-- MAGIC     list_of_files_to_copy = sorted(os.listdir(copy_from))
+-- MAGIC     total_files_in_copy_location = len(list_of_files_to_copy)
+-- MAGIC
+-- MAGIC     ## Get a list of files in the source
+-- MAGIC     list_of_files_in_source = os.listdir(copy_to)
+-- MAGIC
+-- MAGIC     assert total_files_in_copy_location >= n, f"The source location contains only {total_files_in_copy_location} files, but you specified {n}  files to copy. Please specify a number less than or equal to the total number of files available."
+-- MAGIC
+-- MAGIC     ## Looping counter
+-- MAGIC     counter = 1
+-- MAGIC
+-- MAGIC     ## Load files if not found in the co
+-- MAGIC     for file in list_of_files_to_copy:
+-- MAGIC
+-- MAGIC       ## If the file is found in the source, skip it with a note. Otherwise, copy file.
+-- MAGIC       if file in list_of_files_in_source:
+-- MAGIC         print(f'File number {counter} - {file} is already in the source volume "{copy_to}". Skipping file.')
+-- MAGIC       else:
+-- MAGIC         file_to_copy = f'{copy_from}/{file}'
+-- MAGIC         copy_file_to = f'{copy_to}/{file}'
+-- MAGIC         print(f'File number {counter} - Copying file {file_to_copy} --> {copy_file_to}.')
+-- MAGIC         dbutils.fs.cp(file_to_copy, copy_file_to , recurse = True)
+-- MAGIC         
+-- MAGIC         ## Sleep after load
+-- MAGIC         time.sleep(sleep) 
+-- MAGIC
+-- MAGIC       ## Stop after n number of loops based on argument.
+-- MAGIC       if counter == n:
+-- MAGIC         break
+-- MAGIC       else:
+-- MAGIC         counter = counter + 1
+-- MAGIC def copy_file_for_multiple_sources(copy_n_files = 2, 
+-- MAGIC                                    sleep_set = 3,
+-- MAGIC                                    copy_from_source=str,
+-- MAGIC                                    copy_to_target=str
+-- MAGIC                                    ):
+-- MAGIC
+-- MAGIC     for n in range(copy_n_files):
+-- MAGIC         n = n + 1
+-- MAGIC         copy_files(copy_from = f'{copy_from_source}/orders/stream_json', copy_to = f'{copy_to_target}/orders', n = n, sleep=sleep_set)
+-- MAGIC         copy_files(copy_from = f'{copy_from_source}/customers/stream_json', copy_to = f'{copy_to_target}/customers', n = n, sleep=sleep_set)
+-- MAGIC         copy_files(copy_from = f'{copy_from_source}/status/stream_json', copy_to = f'{copy_to_target}/status', n = n, sleep=sleep_set)
+-- MAGIC import os
+-- MAGIC def create_directory_in_user_volume(user_default_volume_path: str, create_folders: list):
+-- MAGIC     '''
+-- MAGIC     Creates multiple (or single) directories in the specified volume path.
+-- MAGIC
+-- MAGIC     Parameters:
+-- MAGIC     - user_default_volume_path (str): The base directory path where the folders will be created. 
+-- MAGIC                                       You can use the default DA.paths.working_dir as the user's volume path.
+-- MAGIC     - create_folders (list): A list of strings representing folder names to be created within the base directory.
+-- MAGIC
+-- MAGIC     Returns:
+-- MAGIC     - None: This function does not return any values but prints log information about the created directories.
+-- MAGIC
+-- MAGIC     Example: 
+-- MAGIC     - create_directory_in_user_volume(user_default_volume_path=DA.paths.working_dir, create_folders=['customers', 'orders', 'status'])
+-- MAGIC     '''
+-- MAGIC     
+-- MAGIC     print('----------------------------------------------------------------------------------------')
+-- MAGIC     for folder in create_folders:
+-- MAGIC
+-- MAGIC         create_folder = f'{user_default_volume_path}/{folder}'
+-- MAGIC
+-- MAGIC         if not os.path.exists(create_folder):
+-- MAGIC         # If it doesn't exist, create the directory
+-- MAGIC             dbutils.fs.mkdirs(create_folder)
+-- MAGIC             print(f'Creating folder: {create_folder}')
+-- MAGIC
+-- MAGIC         else:
+-- MAGIC             print(f"Directory {create_folder} already exists. No action taken.")
+-- MAGIC         
+-- MAGIC     print('----------------------------------------------------------------------------------------\n')
+-- MAGIC def setup_complete():
+-- MAGIC   '''
+-- MAGIC   Prints a note in the output that the setup was complete.
+-- MAGIC   '''
+-- MAGIC   print('\n\n\n------------------------------------------------------------------------------')
+-- MAGIC   print('SETUP COMPLETE!')
+-- MAGIC   print('------------------------------------------------------------------------------')
+
+-- COMMAND ----------
+
+-- MAGIC
+-- MAGIC %python
+-- MAGIC catalog_name = "pipeline"
+-- MAGIC schema_name = ['pipeline_data', '1_bronze_db', '2_silver_db', '3_gold_db']
+-- MAGIC volume_name = "data"
+-- MAGIC data_volume_path = f"/Volumes/{catalog_name}/{schema_name[0]}/{volume_name}"
+-- MAGIC working_dir = data_volume_path
+-- MAGIC print(working_dir)
+-- MAGIC
+-- MAGIC # ## Create volume for the lab
+-- MAGIC # create_volume(in_catalog=catalog_name, in_schema = 'default', volume_name = 'lab_staging_files')
+-- MAGIC # create_volume(in_catalog=catalog_name, in_schema = 'default', volume_name = 'lab_files')
+-- MAGIC
+-- MAGIC # ## Create schemas for lab data
+-- MAGIC # create_schemas(in_catalog = catalog_name, schema_names = ['lab_1_bronze_db', 'lab_2_silver_db', 'lab_3_gold_db'])
+-- MAGIC
+-- MAGIC
+-- MAGIC # ## Create the country_lookup table if it doesn't exist
+-- MAGIC # if spark.catalog.tableExists(f"{catalog_name}.default.country_lookup") == False:
+-- MAGIC #     create_country_lookup_table(in_catalog = catalog_name, in_schema = 'default')
+-- MAGIC # else:
+-- MAGIC #     print(f'Table {catalog_name}.default.country_lookup already exists. No action taken')
+-- MAGIC
+-- MAGIC # delete_source_files(f'/Volumes/{catalog_name}/default/lab_files/')
+-- MAGIC # delete_source_files(f'/Volumes/{catalog_name}/default/lab_files_staging/')
+-- MAGIC
+-- MAGIC # # Example usage
+-- MAGIC # LabSetup = LabDataSetup(f'{catalog_name}','default','lab_staging_files')
+-- MAGIC # LabSetup.copy_file(copy_file = 'employees_1.csv', 
+-- MAGIC #                    to_target_volume = f'/Volumes/{catalog_name}/default/lab_files')
 
 -- COMMAND ----------
 
@@ -86,7 +393,7 @@
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC spark.sql(f'LIST "{DA.paths.working_dir}/customers"').display()
+-- MAGIC spark.sql(f'LIST "{working_dir}/customers"').display()
 
 -- COMMAND ----------
 
@@ -107,7 +414,7 @@
 
 SELECT *
 FROM read_files(
-  DA.paths_working_dir || '/customers/00.json',
+  '/Volumes/pipeline/pipeline_data/data' || '/customers/00.json',
   format => "JSON"
 )
 ORDER BY operation;
@@ -137,12 +444,12 @@ ORDER BY operation;
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC create_declarative_pipeline(pipeline_name=f'6 - Change Data Capture with AUTO CDC - {DA.catalog_name}', 
+-- MAGIC create_declarative_pipeline(pipeline_name=f'6 - Change Data Capture with AUTO CDC - {catalog_name}', 
 -- MAGIC                             root_path_folder_name='6 - Change Data Capture with AUTO CDC Project',
--- MAGIC                             catalog_name = DA.catalog_name,
+-- MAGIC                             catalog_name = catalog_name,
 -- MAGIC                             schema_name = 'default',
 -- MAGIC                             source_folder_names=['orders', 'status', 'customers'],
--- MAGIC                             configuration = {'source':DA.paths.working_dir})
+-- MAGIC                             configuration = {'source':working_dir})
 
 -- COMMAND ----------
 
@@ -334,8 +641,8 @@ WHERE customer_id IN (23225, 23617);
 -- MAGIC %python
 -- MAGIC copy_file_for_multiple_sources(copy_n_files = 2, 
 -- MAGIC                                sleep_set = 1,
--- MAGIC                                copy_from_source='/Volumes/dbacademy_retail/v01/retail-pipeline',
--- MAGIC                                copy_to_target = DA.paths.working_dir)
+-- MAGIC                                copy_from_source='/Volumes/databricks_simulated_retail_customer_data/v01/retail-pipeline',
+-- MAGIC                                copy_to_target = working_dir)
 
 -- COMMAND ----------
 
@@ -345,7 +652,7 @@ WHERE customer_id IN (23225, 23617);
 -- COMMAND ----------
 
 -- MAGIC %python
--- MAGIC spark.sql(f'LIST "{DA.paths.working_dir}/customers"').display()
+-- MAGIC spark.sql(f'LIST "{working_dir}/customers"').display()
 
 -- COMMAND ----------
 
@@ -375,7 +682,7 @@ WHERE customer_id IN (23225, 23617);
 
 SELECT *
 FROM read_files(
-  DA.paths_working_dir || '/customers/01.json',
+  '/Volumes/pipeline/pipeline_data/data' || '/customers/01.json',
   format => "JSON"
 )
 ORDER BY customer_id;
