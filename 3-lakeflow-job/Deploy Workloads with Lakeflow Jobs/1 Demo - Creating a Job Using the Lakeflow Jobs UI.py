@@ -78,11 +78,11 @@
 # MAGIC
 # MAGIC 4. Notice that within your schema a single volume named **banking** exists with a CSV file.
 # MAGIC
-# MAGIC #### dbacademy_retail Catalog
+# MAGIC #### databricks_simulated_retail_customer_data
 # MAGIC
 # MAGIC 1. In the left navigation bar, select the catalog icon:  ![Catalog Icon](./Includes/images/catalog_icon.png)
 # MAGIC
-# MAGIC 2. Locate the catalog called **dbacademy_retail** and expand the catalog.
+# MAGIC 2. Locate the catalog called **databricks_simulated_retail_customer_data** and expand the catalog.
 # MAGIC
 # MAGIC 3. Expand your **v01** schema. 
 # MAGIC
@@ -98,33 +98,9 @@
 # MAGIC
 # MAGIC ### C1. Viewing Notebook File
 # MAGIC 1. Navigate to (or click the link for) the notebook: [Task Files/Lesson 1 Files/1.1 - Creating orders table]($./Task Files/Lesson 1 Files/1.1 - Creating orders table).  
-# MAGIC   - Review the notebook and note that it reads data from **dbacademy_retail.v01.sales_orders** and creates a simple table named **orders_bronze** in your designated **dbacademy.labuser** schema.
 # MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
-# MAGIC ### C2. Viewing and Saving SQL Query File
-# MAGIC #### ---------- PLEASE READ THE FOLLOWING THOROUGHLY TO AVOID ISSUES -----------
 # MAGIC
-# MAGIC 1. Navigate to (or click the link for) the Lesson 1 Task file: [Task Files/Lesson 1 Files/]($./Task Files/Lesson 1 Files/). Then click on **1.2 - Creating Sales Table - SQL Query**.
 # MAGIC
-# MAGIC **TROUBLESHOOTING:**  
-# MAGIC If you see a file named **1.2 - Creating Sales Table - SQL Query.dbquery**, it means you are using **Serverless Version 1**. To fix this:
-# MAGIC
-# MAGIC - Delete the file **./Task Files/Lesson 1/1.2 - Creating Sales Table - SQL Query.dbquery** (the one with the `.dbquery` extension).
-# MAGIC
-# MAGIC - Then go back and run the **Classroom Setup** using the appropriate compute option:  
-# MAGIC     - Your **labuser** cluster, or  
-# MAGIC     - **Serverless** version greater than 1 — [Select an environment version](https://docs.databricks.com/aws/en/compute/serverless/dependencies#-select-an-environment-version)
-# MAGIC
-# MAGIC 2. Review the SQL file, which reads data from **dbacademy_retail.v01.sales** and creates a table named **sales_bronze** in your **dbacademy.labuser** schema.
-# MAGIC
-# MAGIC 3. Connect to your SQL Warehouse using the drop-down menu in the top-right section of the editor.
-# MAGIC
-# MAGIC 4. **REQUIRED - Click on "Save Icon" (top right) to save this query**. You must save this query file to run it in a SQL query task.
-# MAGIC
-# MAGIC 5. After reviewing the notebook and SQL file, close the files and return to this notebook.
 
 # COMMAND ----------
 
