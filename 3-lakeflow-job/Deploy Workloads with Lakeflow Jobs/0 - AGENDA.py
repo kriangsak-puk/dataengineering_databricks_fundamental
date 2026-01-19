@@ -43,9 +43,7 @@
 # MAGIC
 # MAGIC ### Requirements
 # MAGIC
-# MAGIC Please review the following requirements before starting the lesson:
-# MAGIC
-# MAGIC * To run demo and lab notebooks, you need to use the following Databricks runtime: **`17.3.x-scala2.13`**
+# MAGIC Please review the following requirements before starting the lesson
 # MAGIC
 
 # COMMAND ----------

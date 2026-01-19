@@ -39,14 +39,30 @@
 # MAGIC %md
 # MAGIC ## Setup
 # MAGIC
-# MAGIC Open marketplace and add delta share with 
+# MAGIC Open marketplace and get instant access with 
 # MAGIC 1. **Bank Loan Modelling Dataset**
 # MAGIC 1. **Simulated Retail Customer Data**
 # MAGIC
 
 # COMMAND ----------
 
+# MAGIC %run ./Includes/setup
 
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT current_catalog(), current_schema()
+
+# COMMAND ----------
+
+# DBTITLE 1,check require data
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_simulated_retail_customer_data;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_bank_loan_modelling_dataset;
 
 # COMMAND ----------
 
