@@ -34,8 +34,13 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ## 1.Add puclic data from **Marketplace**
-# MAGIC search for **Simulated Retail Customer Data**
+# MAGIC ## Setup
+# MAGIC
+# MAGIC Open marketplace and get instant access with 
+# MAGIC 1. **Bank Loan Modelling Dataset**
+# MAGIC ![](./Includes/Bank Loan Modelling Dataset.png)
+# MAGIC 1. **Simulated Retail Customer Data**
+# MAGIC ![](./Includes/Simulated Retail Customer Data.png)
 
 # COMMAND ----------
 
@@ -334,8 +339,7 @@ print(working_dir)
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC SET VAR path_working_dir = '/Volumes/pipeline/pipeline_data/data';
-# MAGIC SELECT path_working_dir AS path_working_dir;
+# MAGIC DECLARE VARIABLE path_working_dir STRING DEFAULT '/Volumes/pipeline/pipeline_data/data';
 
 # COMMAND ----------
 
@@ -470,15 +474,13 @@ spark.sql(f'''
 # MAGIC
 # MAGIC    **NOTE:** This is being updated and how to enable it might change slightly moving forward.
 # MAGIC
-# MAGIC    a. In the top-right corner, select your user icon ![User Lab Icon](./Includes/images/user_lab_circle_icon.png).
+# MAGIC    a. In the top-right corner, select your user icon .
 # MAGIC
 # MAGIC    b. Right-click on **Settings** and select **Open in New Tab**.
 # MAGIC
 # MAGIC    c. Select **Developer**.
 # MAGIC
 # MAGIC    d. Scroll to the bottom and enable **Lakeflow Pipelines Editor** if it's not enabled and Click **Enable tabs for notebooks and files**.
-# MAGIC
-# MAGIC    ![Lakeflow Pipeline Editor](./Includes/images/lakeflow-pipeline-editor.png)
 # MAGIC
 # MAGIC    e. Refresh your browser page to enable the option you turned on.
 
@@ -505,7 +507,7 @@ spark.sql(f'''
 # MAGIC
 # MAGIC          - **Name**: `my-pipeline-project`
 # MAGIC
-# MAGIC          - **Default catalog**: Select your **workspace** catalog
+# MAGIC          - **Default catalog**: Select your **pipeline** catalog
 # MAGIC
 # MAGIC          - **Default schema**: Select your **default** schema (database)
 # MAGIC
@@ -513,7 +515,6 @@ spark.sql(f'''
 # MAGIC
 # MAGIC          The project will open up in the pipeline editor and look like the following:
 # MAGIC
-# MAGIC       ![Pipeline Editor](./Includes/images/new_pipeline_editor_sample.png)
 # MAGIC
 # MAGIC    f. This will open your Spark Declarative Pipeline within the **Lakeflow Pipelines Editor**. By default, the project creates multiple folders and sample files for you as a starter. You can use this sample folder structure or create your own. Notice the following in the pipeline editor:
 # MAGIC

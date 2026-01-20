@@ -219,7 +219,7 @@
 -- MAGIC
 -- MAGIC    a. In the main navigation bar right-click on **Jobs & Pipelines** and select **Open in Link in New Tab**.
 -- MAGIC
--- MAGIC    b. In **Jobs & Pipelines** select your **3 - Adding Data Quality Expectations Project - labuser** pipeline.
+-- MAGIC    b. In **Jobs & Pipelines** select your **3 - Adding Data Quality Expectations Project** pipeline.
 -- MAGIC
 -- MAGIC    c. **REQUIRED:** At the top near your pipeline name, turn on **New pipeline monitoring**.
 -- MAGIC

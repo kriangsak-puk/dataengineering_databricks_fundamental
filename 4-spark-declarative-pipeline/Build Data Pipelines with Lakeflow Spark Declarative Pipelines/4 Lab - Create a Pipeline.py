@@ -646,7 +646,7 @@ LabSetup.copy_file(copy_file = 'employees_1.csv',
 # MAGIC
 # MAGIC    a. Select the **Catalog** icon ![Catalog Icon](./Includes/images/catalog_icon.png) in the left navigation bar.  
 # MAGIC
-# MAGIC    b. Expand your **labuser** catalog.  
+# MAGIC    b. Expand your **pipeline** catalog.  
 # MAGIC
 # MAGIC    c. Expand the **default** schema.  
 # MAGIC
@@ -701,18 +701,18 @@ spark.sql(f'''
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC -- Specify to use your labuser catalog from the course DA object
-# MAGIC USE CATALOG IDENTIFIER(catalog_name);
+# MAGIC -- Specify to use your pipeline catalog
+# MAGIC USE CATALOG IDENTIFIER("pipeline");
 # MAGIC
 # MAGIC
-# MAGIC CREATE OR REPLACE TABLE lab_1_bronze_db.employees_bronze_lab4  -- You will have to modify this to create a streaming table in the pipeline
+# MAGIC CREATE OR REPLACE STREAMING TABLE lab_1_bronze_db.employees_bronze_lab4  -- You will have to modify this to create a streaming table in the pipeline
 # MAGIC AS
 # MAGIC SELECT 
 # MAGIC   *,
 # MAGIC   current_timestamp() AS ingestion_time,
 # MAGIC   _metadata.file_name as raw_file_name
 # MAGIC FROM read_files(                                           -- You will have to modify FROM clause to incrementally read in data
-# MAGIC   '/Volumes/' || catalog_name || '/default/lab_files',  -- You will have to modify this path in the pipeline to your specific raw data source
+# MAGIC   '/Volumes/' || "pipeline" || '/default/lab_files',  -- You will have to modify this path in the pipeline to your specific raw data source
 # MAGIC   format => 'CSV',
 # MAGIC   header => 'true'
 # MAGIC );
@@ -727,7 +727,7 @@ spark.sql(f'''
 # MAGIC %md
 # MAGIC #### B2.2 - Bronze to Silver
 # MAGIC
-# MAGIC Run the cell below to create the table **labuser.lab_2_silver_db.employees_silver_lab4** and explore the results. Notice that a few simple data transformations were applied to the bronze table, and metadata columns were removed.
+# MAGIC Run the cell below to create the table **pipeline.lab_2_silver_db.employees_silver_lab4** and explore the results. Notice that a few simple data transformations were applied to the bronze table, and metadata columns were removed.
 # MAGIC
 # MAGIC Think about what you will need to change when migrating this to a Spark Declarative Pipeline. Hints are added as comments in the code below.
 # MAGIC
@@ -771,7 +771,7 @@ spark.sql(f'''
 # COMMAND ----------
 
 # MAGIC %sql
-# MAGIC CREATE OR REPLACE VIEW lab_3_gold_db.employees_by_country_gold_lab4 -- You will have to modify this to create a materialized view in the pipeline
+# MAGIC CREATE OR REPLACE MATERIALIZED VIEW lab_3_gold_db.employees_by_country_gold_lab4 -- You will have to modify this to create a materialized view in the pipeline
 # MAGIC AS
 # MAGIC SELECT 
 # MAGIC   Country,
@@ -881,7 +881,6 @@ print(f'/Volumes/{catalog_name}/default/lab_files')
 # MAGIC - Add the keyword `STREAM` in the `FROM` clause to incrementally ingest data from the delta table.
 # MAGIC
 # MAGIC - Modify the path in the `FROM` clause to point to your **labuser.default.lab_files** volume path (example: `/Volumes/labuser1234/default/lab_files`). You can statically add the path in the `read_files` function, or use a configuration parameter.
-# MAGIC - **NOTE:** You can't use the `DA` object in your path. Remember to add a static path or configuration parameter.
 # MAGIC
 # MAGIC <br></br>
 # MAGIC ##### 2b. Modify the code (shown below) to create the **silver** streaming table by completing the following in your pipeline project:
@@ -986,7 +985,7 @@ create_declarative_pipeline(pipeline_name=f'4 - Lab Solution Project - {catalog_
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 1. In the catalog explorer on the left, expand your **labuser** catalog and expand the following schemas:
+# MAGIC 1. In the catalog explorer on the left, expand your **pipeline** catalog and expand the following schemas:
 # MAGIC    - **lab_1_bronze_db**
 # MAGIC    - **lab_2_silver_db**
 # MAGIC    - **lab_3_gold_db**
@@ -999,7 +998,7 @@ create_declarative_pipeline(pipeline_name=f'4 - Lab Solution Project - {catalog_
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 2. Run the cell below to view the data in your **labuser.lab_1_bronze_db.employees_bronze_lab4** streaming table. Notice that the first row contains a `null` **EmployeeID**.
+# MAGIC 2. Run the cell below to view the data in your **pipeline.lab_1_bronze_db.employees_bronze_lab4** streaming table. Notice that the first row contains a `null` **EmployeeID**.
 # MAGIC
 # MAGIC **NOTE:** If you ran the solution pipeline, the streaming table is named **employees_bronze_lab4_solution**.
 
@@ -1012,7 +1011,7 @@ create_declarative_pipeline(pipeline_name=f'4 - Lab Solution Project - {catalog_
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 3. Run the cell below to view the data in your **labuser.lab_2_silver_db.employees_silver_lab4** streaming table. Notice that the silver table removed the **EmployeeID** value that contained a `null` using a data quality expectation.
+# MAGIC 3. Run the cell below to view the data in your **pipeline.lab_2_silver_db.employees_silver_lab4** streaming table. Notice that the silver table removed the **EmployeeID** value that contained a `null` using a data quality expectation.
 # MAGIC
 # MAGIC **NOTE:** If you ran the solution pipeline, the streaming table is named **employees_silver_lab4_solution**.
 
@@ -1025,7 +1024,7 @@ create_declarative_pipeline(pipeline_name=f'4 - Lab Solution Project - {catalog_
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 4. Run the cell below to view the data in your **labuser.lab_3_gold_db.employees_by_country_gold_lab4** materialized view. 
+# MAGIC 4. Run the cell below to view the data in your **pipeline.lab_3_gold_db.employees_by_country_gold_lab4** materialized view. 
 # MAGIC
 # MAGIC     **Final Results**
 # MAGIC     | Country | TotalCount | TotalSalary |
@@ -1045,7 +1044,7 @@ create_declarative_pipeline(pipeline_name=f'4 - Lab Solution Project - {catalog_
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 5. Run the cell below to view the data in your **labuser.lab_3_gold_db.salary_by_department_gold_lab4** materialized view. 
+# MAGIC 5. Run the cell below to view the data in your **pipeline.lab_3_gold_db.salary_by_department_gold_lab4** materialized view. 
 # MAGIC
 # MAGIC     **Final Results**
 # MAGIC     | Department  | TotalSalary |

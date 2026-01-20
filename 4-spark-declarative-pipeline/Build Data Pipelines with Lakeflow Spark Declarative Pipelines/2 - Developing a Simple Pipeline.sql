@@ -143,7 +143,7 @@
 -- MAGIC    c. Complete the pipeline creation page with the following:
 -- MAGIC
 -- MAGIC     - **Name**: `Name-your-pipeline-using-this-notebook-name-add-your-first-name` 
--- MAGIC     - **Default catalog**: Select your **workspace** catalog  
+-- MAGIC     - **Default catalog**: Select your **pipeline** catalog  
 -- MAGIC     - **Default schema**: Select your **default** schema (database)
 -- MAGIC     - Notice there are a variety of options to start your pipeline.
 -- MAGIC
@@ -178,9 +178,8 @@
 -- MAGIC %md
 -- MAGIC ## C. Add a New File to Cloud Storage
 -- MAGIC
--- MAGIC 1. After exploring and executing the pipeline by following the instructions in the **`orders_pipeline.sql`** file, run the cell below to add a new JSON file (**01.json**) to your volume at:  `/Volumes/dbacademy/ops/labuser-your-id/orders`.
+-- MAGIC 1. After exploring and executing the pipeline by following the instructions in the **`orders_pipeline.sql`** file, run the cell below to add a new JSON file (**01.json**) to your volume at:  `/Volumes/pipeline/pipeline_data/data/orders`.
 -- MAGIC
--- MAGIC    **NOTE:** If you receive the error `name 'DA' is not defined`, you will need to rerun the classroom setup script at the top of this notebook to create the `DA` object. This is required to correctly reference the path and successfully copy the file.
 
 -- COMMAND ----------
 
@@ -238,20 +237,20 @@
 -- MAGIC
 -- MAGIC    a. Select the catalog icon ![Catalog Icon](./Includes/images/catalog_icon.png) in the left navigation pane.
 -- MAGIC
--- MAGIC    b. Expand your **labuser** catalog.
+-- MAGIC    b. Expand your **pipeline** catalog.
 -- MAGIC
 -- MAGIC    c. Expand the schemas **1_bronze_db**, **2_silver_db**, and **3_gold_db**. Notice that the two streaming tables and materialized view are correctly placed in your schemas.
 -- MAGIC
--- MAGIC       - **labuser.1_bronze_db.orders_bronze_demo2**
+-- MAGIC       - **pipeline.1_bronze_db.orders_bronze_demo2**
 -- MAGIC
--- MAGIC       - **labuser.2_silver_db.orders_silver_demo2**
+-- MAGIC       - **pipeline.2_silver_db.orders_silver_demo2**
 -- MAGIC
--- MAGIC       - **labuser.3_gold_db.orders_by_date_gold_demo2**
+-- MAGIC       - **pipeline.3_gold_db.orders_by_date_gold_demo2**
 
 -- COMMAND ----------
 
 -- MAGIC %md
--- MAGIC 2. Run the cell below to view the data in the **labuser.1_bronze_db.orders_bronze_demo2** table. Before you run the cell, how many rows should this streaming table have?
+-- MAGIC 2. Run the cell below to view the data in the **pipeline.1_bronze_db.orders_bronze_demo2** table. Before you run the cell, how many rows should this streaming table have?
 -- MAGIC
 -- MAGIC    Notice the following:
 -- MAGIC       - The table contains 199 rows (**00.json** had 174 rows, and **01.json** had 25 rows).
@@ -270,7 +269,7 @@ FROM 1_bronze_db.orders_bronze_demo2;
 -- MAGIC
 -- MAGIC    a. Select the **Catalog** icon ![Catalog Icon](./Includes/images/catalog_icon.png) in the left navigation pane.  
 -- MAGIC
--- MAGIC    b. Expand the **labuser.1_bronze_db** schema.  
+-- MAGIC    b. Expand the **pipeline.1_bronze_db** schema.  
 -- MAGIC
 -- MAGIC    c. Click the three-dot (ellipsis) icon next to the **orders_bronze_demo2** table.  
 -- MAGIC
@@ -310,9 +309,9 @@ FROM 1_bronze_db.orders_bronze_demo2;
 -- MAGIC
 -- MAGIC    a. In the main applications navigation pane on the far left (you may need to expand it by selecting the ![Expand Navigation Pane](./Includes/images/expand_main_navigation.png) icon at the top left of your workspace) right-click on **Jobs & Pipelines** and select **Open Link in a New Tab**.
 -- MAGIC
--- MAGIC    b. This should take you to the pipelines you have created. You should see your **2 - Developing a Simple Pipeline Project - labuser** pipeline.
+-- MAGIC    b. This should take you to the pipelines you have created. You should see your **2 - Developing a Simple Pipeline Project** pipeline.
 -- MAGIC
--- MAGIC    c. Select your **2 - Developing a Simple Pipeline Project - labuser**. Here, you can use the UI to modify the pipeline.
+-- MAGIC    c. Select your **2 - Developing a Simple Pipeline Project**. Here, you can use the UI to modify the pipeline.
 -- MAGIC
 -- MAGIC    d. Select the **Settings** button at the top. This will take you to the settings within the UI.
 -- MAGIC
