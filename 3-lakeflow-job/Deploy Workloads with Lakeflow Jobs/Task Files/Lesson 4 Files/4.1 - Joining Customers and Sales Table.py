@@ -12,6 +12,8 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC USE CATALOG ${catalog};
+# MAGIC USE SCHEMA ${schema};
 # MAGIC CREATE OR REPLACE TABLE customers_sales_silver AS
 # MAGIC SELECT
 # MAGIC   c.customer_id,

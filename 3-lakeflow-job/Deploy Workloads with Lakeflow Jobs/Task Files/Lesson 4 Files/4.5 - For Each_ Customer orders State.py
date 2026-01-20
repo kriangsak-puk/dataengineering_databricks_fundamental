@@ -11,6 +11,12 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG ${catalog};
+# MAGIC USE SCHEMA ${schema};
+
+# COMMAND ----------
+
 #Getting state code from widget
 state = dbutils.widgets.get("state")
 print(f"Running for state: {state}")

@@ -11,6 +11,12 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG ${catalog};
+# MAGIC USE SCHEMA ${schema};
+
+# COMMAND ----------
+
 ### --- Data Cleaning ---
 
 # Strip whitespace from column names

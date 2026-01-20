@@ -16,7 +16,7 @@ sales_df = spark.read.table('databricks_simulated_retail_customer_data.v01.sales
 
 # COMMAND ----------
 
-sales_df.write.mode('overwrite').option('overwriteSchema', 'true').saveAsTable('sales_bronze')
+sales_df.write.mode('overwrite').option('overwriteSchema', 'true').saveAsTable('lakeflow_job.default.sales_bronze')
 
 # COMMAND ----------
 

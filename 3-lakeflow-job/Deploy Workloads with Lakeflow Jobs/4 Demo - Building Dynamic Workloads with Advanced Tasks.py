@@ -24,9 +24,37 @@
 # MAGIC ### Learning Objective
 # MAGIC Create and visualize a dynamic Lakeflow job with multiple tasks and dependencies.
 # MAGIC
-# MAGIC ![Lesson04_final_job](./Includes/images/Lesson04_final_job.png)
-# MAGIC
 # MAGIC After completing this demo, your job will look like above.
+
+# COMMAND ----------
+
+# MAGIC %md
+# MAGIC ## Setup
+# MAGIC
+# MAGIC Open marketplace and get instant access with 
+# MAGIC 1. **Bank Loan Modelling Dataset**
+# MAGIC ![](./Includes/Bank Loan Modelling Dataset.png)
+# MAGIC 1. **Simulated Retail Customer Data**
+# MAGIC ![](./Includes/Simulated Retail Customer Data.png)
+
+# COMMAND ----------
+
+# MAGIC %run ./Includes/setup 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT current_catalog(), current_schema()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_simulated_retail_customer_data;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_bank_loan_modelling_dataset;
 
 # COMMAND ----------
 
@@ -34,11 +62,11 @@
 # MAGIC ## B. Explore Your Schema
 # MAGIC Complete the following to explore your **dbacademy.labuser** schema:
 # MAGIC
-# MAGIC 1. In the left navigation bar, select the catalog icon:  ![Catalog Icon](./Includes/images/catalog_icon.png)
+# MAGIC 1. In the left navigation bar, select the catalog icon
 # MAGIC
-# MAGIC 2. Locate the catalog called **dbacademy** and expand the catalog.
+# MAGIC 2. Locate the catalog called **lakeflow_job** and expand the catalog.
 # MAGIC
-# MAGIC 3. Expand your **labuser** schema. 
+# MAGIC 3. Expand your **default** schema. 
 # MAGIC
 # MAGIC 4. Notice that within your schema you will find two tables named as **sales_bronze**, **customers_bronze** and **orders_bronze**.
 # MAGIC
@@ -74,9 +102,176 @@
 # MAGIC
 # MAGIC    Run the cell below to build the starter job that we have been continually building in this course. These commands will set up your job with all work completed so far and add the required tasks for this demonstration.
 # MAGIC
-# MAGIC ![Lesson04_starter_job](./Includes/images/Lesson04_starter_job.png)
 # MAGIC
-# MAGIC
+
+# COMMAND ----------
+
+import os
+from databricks.sdk.service import jobs, pipelines
+from databricks.sdk import WorkspaceClient  
+
+class DAJobConfig:
+    '''
+    Example
+    ------------
+    job_tasks = [
+        {
+            'task_name': 'create_table',
+            'file_path': '/01 - Simple DAB/create_table',
+            'depends_on': None
+        },
+        {
+            'task_name': 'create_table1',
+            'file_path': '/01 - Simple DAB/other_table2',
+            'depends_on': [{'task_key': 'create_table'}]
+        },
+        {
+            'task_name': 'create_table3',
+            'file_path': '/01 - Simple DAB/other_table2',
+            'depends_on': [{'task_key': 'create_table'},{'task_key': 'create_table1'}]
+        }
+    ]
+
+
+    myjob = DAJobConfig(job_name='test3',
+                        job_tasks=job_tasks,
+                        job_parameters=[
+                            {'name':'target', 'default':'dev'},
+                            {'name':'catalog_name', 'default':'test'}
+                        ])
+    '''
+    def __init__(self, 
+                 job_name: str,
+                 job_tasks: list[dict],
+                 job_parameters: list[dict]):
+    
+        self.job_name = job_name
+        self.job_tasks = job_tasks
+        self.job_parameters = job_parameters
+        
+        ## Connect the Workspace
+        self.w = self.get_workspace_client()
+
+        ## Execute methods
+        self.check_for_duplicate_job_name(check_job_name=self.job_name)
+        print(f'Job name is unique. Creating the job {self.job_name}...')
+
+        self.course_path = self.get_path_one_folder_back()
+        self.list_job_tasks = self.create_job_tasks()
+
+        self.create_job(job_tasks = self.list_job_tasks)
+
+
+    ## Get Workspace client
+    def get_workspace_client(self):
+        """
+        Establishes and returns a WorkspaceClient instance for interacting with the Databricks API.
+        This is set when the object is created within self.w
+
+        Returns:
+            WorkspaceClient: A client instance to interact with the Databricks workspace.
+        """
+        w = WorkspaceClient()
+        return w
+
+
+    # Check if the job name already exists, return error if it does.
+    def check_for_duplicate_job_name(self, check_job_name: str):
+        for job in self.w.jobs.list():
+            if job.settings.name == check_job_name:
+                test_job_name = False
+                assert test_job_name, f'You already have a job with the same name. Please manually delete the job {self.job_name}'                
+
+
+    ## Store the path of one folder one folder back
+    def get_path_one_folder_back(self):
+        current_path = os.getcwd()
+        print(f'Using the following path to reference the Files: {current_path}/.')
+        return current_path
+
+
+    ## Create the job tasks
+    def create_job_tasks(self):
+        all_job_tasks = []
+        for task in job_tasks:
+            if task.get('file_path', False) != False:
+
+                ## Create a list of jobs.TaskDependencies
+                task_dependencies = [jobs.TaskDependency(task_key=depend_task['task_key']) for depend_task in task['depends_on']] if task['depends_on'] else None
+
+                ## Create the task
+                job_task_File = jobs.Task(task_key=task['task_name'],
+                                         notebook_task=jobs.NotebookTask(notebook_path=self.course_path+task['file_path']),
+                                         depends_on=task_dependencies,
+                                         timeout_seconds=0)
+                all_job_tasks.append(job_task_File)
+
+            elif task.get('pipeline_task', False) != False:
+                job_task_dlt = jobs.Task(task_key=task['task_name'],
+                                         pipeline_task=jobs.PipelineTask(pipeline_id=task['pipeline_id'], full_refresh=True),
+                                         timeout_seconds=0)
+                all_job_tasks.append(job_task_info)
+
+        return all_job_tasks
+    
+
+    def set_job_parameters(self, parameters: dict):
+
+        job_params_list = []
+        for param in self.job_parameters:
+            job_parameter = jobs.JobParameterDefinition(name=param['name'], default=param['default'])
+            job_params_list.append(job_parameter)
+
+        return job_params_list
+    
+
+    ## Create final job
+    def create_job(self, job_tasks: list[jobs.Task]):
+        created_job = self.w.jobs.create(
+                name=self.job_name,
+                tasks=job_tasks,
+                parameters = self.set_job_parameters(self.job_parameters)
+            )
+
+# COMMAND ----------
+
+job_tasks = [
+        {
+            'task_name': 'ingesting_orders',
+            'file_path': '/Task Files/Lesson 1 Files/1.1 - Creating orders table',
+            'depends_on': None
+        },
+        {
+            'task_name': 'ingesting_sales',
+            'file_path': '/Task Files/Lesson 1 Files/1.2 - Creating sales table',
+            'depends_on': None
+        },
+        {
+            'task_name': 'ingesting_customers',
+            'file_path': '/Task Files/Lesson 3 Files/3.1 - Creating customers table',
+            'depends_on': None
+        }
+        ,{
+            'task_name': 'customers_sales_summary',
+            'file_path': '/Task Files/Lesson 4 Files/4.1 - Joining Customers and Sales Table',
+            'depends_on': [
+                        {'task_key':'ingesting_customers'},
+                        {'task_key': 'ingesting_sales'}
+                        ]
+        }
+        ,{
+            'task_name' : 'customers_orders_report',
+            'file_path': '/Task Files/Lesson 4 Files/4.2 - Joining Customers and Orders Table',
+            'depends_on': None
+        }
+    ]
+
+myjob = DAJobConfig(job_name=f"Demo_04_Retail_Job_{schema_name}",
+                    job_tasks=job_tasks,
+                    job_parameters=[
+                        {'name':'catalog', 'default':'lakeflow_job'},
+                        {'name':'schema', 'default':f'{schema_name}'}
+                    ])
 
 # COMMAND ----------
 
@@ -95,7 +290,7 @@
 # MAGIC
 # MAGIC 1. Navigate to **Jobs and Pipelines** and open it in a new tab.
 # MAGIC
-# MAGIC 2. Select your new job that starts with **Demo_04_Retail_Job_labuser**.
+# MAGIC 2. Select your new job that starts with **Demo_04_Retail_Job_default**.
 # MAGIC
 # MAGIC 3. Click on **Tasks** in the top navigation bar.
 # MAGIC
@@ -119,9 +314,6 @@
 # MAGIC
 # MAGIC 7. Click on **Run_now** to run the job.
 # MAGIC
-# MAGIC <br></br>
-# MAGIC #### Final Dependencies
-# MAGIC ![Lesson04_dependencies](./Includes/images/Lesson04_dependencies.png)
 # MAGIC
 
 # COMMAND ----------
@@ -162,7 +354,7 @@
 # MAGIC
 # MAGIC Create an **If/else conditional** task to determine what to execute based on whether duplicate records are found.
 # MAGIC
-# MAGIC 1. In your **Demo_04_Retail_Job_labuser** job, select **Add task**.
+# MAGIC 1. In your **Demo_04_Retail_Job_default** job, select **Add task**.
 # MAGIC
 # MAGIC 2. In the dialog box, scroll down to the **Advanced** section and select the task type **If/else condition**.
 # MAGIC
@@ -187,11 +379,6 @@
 # MAGIC 7. Select **Save task** to create the conditional task.
 # MAGIC
 # MAGIC
-# MAGIC <br></br>
-# MAGIC ##### IF/ELSE CONDITION TASK
-# MAGIC
-# MAGIC ![Lesson04_conditional_task.png](./Includes/images/Lesson04_conditional_task.png)
-# MAGIC
 
 # COMMAND ----------
 
@@ -206,16 +393,14 @@
 # MAGIC
 # MAGIC 3. Name the new task **dropping_duplicate_records**.
 # MAGIC
-# MAGIC 4. Use the notebook [4.3 - If Condition: Dropping Duplicates]($./Task Files/Lesson 4 Files/4.3 - If Condition: Dropping Duplicates) as the task source.  
+# MAGIC 4. Use the notebook [4.3 - If Condition: Dropping Duplicates]($./Task Files/Lesson 4 Files/4.3 - If Condition_ Dropping Duplicates) as the task source.  
 # MAGIC    - This notebook includes logic to remove duplicate records from the **customers_sales_silver** table.
 # MAGIC
 # MAGIC 5. In the **Depends on** field, set this task to depend on the **True** branch of the **checking_for_duplicates** task (`checking_for_duplicates (true)`).
 # MAGIC
 # MAGIC 6. Click on **Create Task** 
 # MAGIC <br></br>
-# MAGIC ##### TRUE DEPENDENCY TASK
 # MAGIC
-# MAGIC ![Lesson04_if_task](./Includes/images/Lesson04_if_task.png)
 
 # COMMAND ----------
 
@@ -232,7 +417,7 @@
 # MAGIC
 # MAGIC 3. Name the new task **transforming_customers_sales_table**.
 # MAGIC
-# MAGIC 4. Use the notebook [Task Files/Lesson 4 Files/4.4 - Else Condition: Cleaning and Transforming Customers Sales Table]($./Task Files/Lesson 4 Files/4.4 - Else Condition: Cleaning and Transforming Customers Sales Table) as the task source.  
+# MAGIC 4. Use the notebook [Task Files/Lesson 4 Files/4.4 - Else Condition: Cleaning and Transforming Customers Sales Table]($./Task Files/Lesson 4 Files/4.4 - Else Condition_ Cleaning and Transforming Customers Sales Table) as the task source.  
 # MAGIC    - This notebook includes logic to clean and transform the **customers_sales_silver** table.
 # MAGIC
 # MAGIC 5. In the **Depends on** field, set this task to depend on the following:
@@ -247,21 +432,13 @@
 # MAGIC 7. Click on **Create Task**.
 # MAGIC
 # MAGIC 8. Click on **Run now** button to run the job
-# MAGIC
-# MAGIC
-# MAGIC <br></br>
-# MAGIC ##### FALSE DEPENDENCY TASK
-# MAGIC
-# MAGIC ![Lesson04_false_task.png](./Includes/images/Lesson04_false_task.png)
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ### E5. Job Confirmation  
-# MAGIC Confirm your job looks like the following after adding the **If/else condition** and associated tasks:
+# MAGIC Confirm your job looks like the following after adding the **If/else condition** and associated tasks.
 # MAGIC
-# MAGIC
-# MAGIC ![Lesson04_IfElse](./Includes/images/Lesson04_IfElse.png)
 
 # COMMAND ----------
 
@@ -279,7 +456,7 @@
 # MAGIC
 # MAGIC 1. Review the notebook [Task Files/Lesson 4 Files/4.2 - Joining Customers and Orders Table]($./Task Files/Lesson 4 Files/4.2 - Joining Customers and Orders Table), which creates the **customers_orders_silver** table.
 # MAGIC
-# MAGIC 2. The [Task Files/Lesson 4 Files/4.5 - For Each: Customer orders State]($./Task Files/Lesson 4 Files/4.5 - For Each: Customer orders State) notebook will be executed in a loop for each state mentioned above. This script dynamically takes the state value and runs it for each state, creating a state-specific table with customers_order_silver data.
+# MAGIC 2. The [Task Files/Lesson 4 Files/4.5 - For Each: Customer orders State]($./Task Files/Lesson 4 Files/4.5 - For Each_ Customer orders State) notebook will be executed in a loop for each state mentioned above. This script dynamically takes the state value and runs it for each state, creating a state-specific table with customers_order_silver data.
 
 # COMMAND ----------
 
@@ -305,9 +482,6 @@
 # MAGIC
 # MAGIC 8. Click on **Add a task to loop over**.
 # MAGIC
-# MAGIC #### For Each Iterator
-# MAGIC
-# MAGIC ![Lesson04_For_Each_Task_Iterator.png](./Includes/images/Lesson04_For_Each_Task_Iterator.png)
 
 # COMMAND ----------
 
@@ -322,7 +496,7 @@
 # MAGIC
 # MAGIC 3. Confirm the task **Type** is **Notebook** and the **Source** is **Workspace**.
 # MAGIC
-# MAGIC 4. Set the notebook path to [Task Files/Lesson 4/4.5 - For Each: Customer orders State]($./Task Files/Lesson 4 Files/4.5 - For Each: Customer orders State), which is under the **Task Files** folder.
+# MAGIC 4. Set the notebook path to [Task Files/Lesson 4/4.5 - For Each: Customer orders State]($./Task Files/Lesson 4 Files/4.5 - For Each_ Customer orders State), which is under the **Task Files** folder.
 # MAGIC
 # MAGIC 5. Set **Compute** to **serverless**.
 # MAGIC
@@ -333,9 +507,8 @@
 # MAGIC
 # MAGIC 7. Click **Create task**.
 # MAGIC
-# MAGIC <br></br>
-# MAGIC #### Iterator Task
-# MAGIC ![Lesson04_iterator_task.pngg](./Includes/images/Lesson04_iterator_task.png)
+# MAGIC ![How the final output should be](./Includes/4demo-dynamic.png)
+# MAGIC
 
 # COMMAND ----------
 

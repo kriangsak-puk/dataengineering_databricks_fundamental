@@ -12,12 +12,13 @@
 # COMMAND ----------
 
 ## Store the values from the text input widgets into variables
-my_catalog = 'workspace'
-my_schema = 'default'
-
+# my_catalog = 'lakeflow_job'
+# my_schema = 'default'
+my_catalog = dbutils.widgets.get("catalog")
+my_schema = dbutils.widgets.get("schema")
 
 ## Set path to your volume
-my_volume_path = "/Volumes/databricks_simulated_retail_customer_data/v01/source_files/"
+my_volume_path = f"/Volumes/{my_catalog}/{my_schema}/trigger_storage_location/"
 
 ## Display the variables
 print(my_catalog)

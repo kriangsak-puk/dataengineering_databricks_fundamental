@@ -41,8 +41,9 @@
 # MAGIC
 # MAGIC Open marketplace and get instant access with 
 # MAGIC 1. **Bank Loan Modelling Dataset**
+# MAGIC ![](./Includes/Bank Loan Modelling Dataset.png)
 # MAGIC 1. **Simulated Retail Customer Data**
-# MAGIC
+# MAGIC ![](./Includes/Simulated Retail Customer Data.png)
 
 # COMMAND ----------
 
@@ -72,21 +73,13 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ### B1. Explore your Class Schema
-# MAGIC
-# MAGIC explore your **workspace.default** schema
-# MAGIC
-
-# COMMAND ----------
-
-# MAGIC %md
 # MAGIC ### B2. Explore your Source Catalogs
 # MAGIC
 # MAGIC #### Bank Loan Modelling Dataset Catalog
 # MAGIC
 # MAGIC Complete the following to explore your **Bank Loan Modelling Dataset** and **dbacademy_retail** catalogs. We will be ingesting tables and files from these locations during the demos and labs:
 # MAGIC
-# MAGIC 1. In the left navigation bar, select the catalog icon:  ![Catalog Icon](./Includes/images/catalog_icon.png)
+# MAGIC 1. In the left navigation bar, select the catalog icon: 
 # MAGIC
 # MAGIC 2. Locate the catalog called **Bank Loan Modelling Dataset** and expand the catalog.
 # MAGIC
@@ -96,7 +89,7 @@
 # MAGIC
 # MAGIC #### databricks_simulated_retail_customer_data
 # MAGIC
-# MAGIC 1. In the left navigation bar, select the catalog icon:  ![Catalog Icon](./Includes/images/catalog_icon.png)
+# MAGIC 1. In the left navigation bar, select the catalog icon: 
 # MAGIC
 # MAGIC 2. Locate the catalog called **databricks_simulated_retail_customer_data** and expand the catalog.
 # MAGIC
@@ -150,7 +143,7 @@
 # MAGIC
 # MAGIC **NOTE:** If you click on a recommended task (like **Notebook**), you will be redirected to a different page than shown in the screenshot below.
 # MAGIC
-# MAGIC ![Lesson01_Jobs_UI.png](./Includes/images/Lesson01_Jobs_UI.png)
+# MAGIC
 
 # COMMAND ----------
 
@@ -180,9 +173,6 @@
 # MAGIC
 # MAGIC <br></br>
 # MAGIC
-# MAGIC #### Notebook Task Setup
-# MAGIC
-# MAGIC ![Lesson01_Notebook_task.png](./Includes/images/Lesson01_Notebook_task.png)
 # MAGIC
 # MAGIC
 # MAGIC
@@ -213,9 +203,6 @@
 # MAGIC
 # MAGIC <br></br>
 # MAGIC
-# MAGIC #### SQL Task Setup
-# MAGIC
-# MAGIC ![Lesson01_task1_sql.png](./Includes/images/Lesson01_task1_sql.png)
 
 # COMMAND ----------
 
@@ -272,7 +259,6 @@
 # MAGIC
 # MAGIC Below the chart, you will find a tabular matrix view that provides the same information in detail. This table starts with the timestamp and includes fields such as run_id, run status, duration, and other relevant details for each run.
 # MAGIC
-# MAGIC ![Lesson01_view_runs.png](./Includes/images/Lesson01_view_runs.png)
 # MAGIC
 # MAGIC 4. Open the output details by clicking the timestamp under the **Start time** column:
 # MAGIC
@@ -284,9 +270,9 @@
 
 # MAGIC %md
 # MAGIC ## G. View Your New Tables
-# MAGIC 1. From left-hand pane, select **Catalog**. Then drill down from **dbacademy** catalog.
+# MAGIC 1. From left-hand pane, select **Catalog**. Then drill down from **lakeflow_job** catalog.
 # MAGIC
-# MAGIC 2. Expand your unique schema name.
+# MAGIC 2. Expand **default** schema name.
 # MAGIC
 # MAGIC 3. Notice that within your schema a table named **sales_bronze** and **orders_bronze**
 

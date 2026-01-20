@@ -12,6 +12,8 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC USE CATALOG lakeflow_job;
+# MAGIC USE SCHEMA default;
 # MAGIC -- Create the Borrowers Table
 # MAGIC CREATE TABLE IF NOT EXISTS borrower_details_silver (
 # MAGIC     id INT PRIMARY KEY,

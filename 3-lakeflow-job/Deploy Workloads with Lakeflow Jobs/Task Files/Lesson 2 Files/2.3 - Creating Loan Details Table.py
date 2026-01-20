@@ -12,6 +12,8 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC USE CATALOG lakeflow_job;
+# MAGIC USE SCHEMA default;
 # MAGIC -- Creating Loan Details Table
 # MAGIC CREATE TABLE IF NOT EXISTS loan_details_silver (
 # MAGIC     id INT,

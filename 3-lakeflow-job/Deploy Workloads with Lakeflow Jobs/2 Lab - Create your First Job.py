@@ -36,14 +36,31 @@
 
 # MAGIC %md
 # MAGIC ## Setup
-# MAGIC Open marketplace and add delta share with
 # MAGIC
-# MAGIC Bank Loan Modelling Dataset
-# MAGIC Simulated Retail Customer Data
+# MAGIC Open marketplace and get instant access with 
+# MAGIC 1. **Bank Loan Modelling Dataset**
+# MAGIC ![](./Includes/Bank Loan Modelling Dataset.png)
+# MAGIC 1. **Simulated Retail Customer Data**
+# MAGIC ![](./Includes/Simulated Retail Customer Data.png)
 
 # COMMAND ----------
 
+# MAGIC %run ./Includes/setup 
 
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT current_catalog(), current_schema()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_simulated_retail_customer_data;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_bank_loan_modelling_dataset;
 
 # COMMAND ----------
 
@@ -66,7 +83,7 @@
 # MAGIC %md
 # MAGIC ### C1. Add a Single Notebook Task
 # MAGIC
-# MAGIC Let's start by scheduling the first notebook [Task Files/Lesson 2 Files/2.1 - Ingesting Banking Data]($./Volumes/databricks_bank_loan_modelling_dataset/v01/banking/loan-clean.csv) notebook. Click the hotlink in previous sentence to review the code.
+# MAGIC Let's start by scheduling the first notebook [Task Files/Lesson 2 Files/2.1 - Ingesting Banking Data]($./Task Files/Lesson 2 Files/2.1 - Ingesting Banking Data) notebook. Click the hotlink in previous sentence to review the code.
 # MAGIC
 # MAGIC The notebook creates a table named **bank_master_data_bronze** in your schema from the CSV file in the volume `/Volumes/databricks_bank_loan_modelling_dataset/v01/banking/loan-clean.csv`. 
 # MAGIC
@@ -101,8 +118,6 @@
 # MAGIC
 # MAGIC 10. From left-hand pane, select **Catalog**, navigate to your schema in the **dbacademy** catalog and confirm the table **bank_master_data_bronze** was created (you might have to refresh your schema).
 # MAGIC
-# MAGIC <br></br>
-# MAGIC ![Lesson02_Task_1__Notebook](./Includes/images/Lesson02_Task_1_Notebook.png)
 
 # COMMAND ----------
 
@@ -131,8 +146,7 @@
 # MAGIC
 # MAGIC 4. Click the blue **Create task** button.
 # MAGIC
-# MAGIC <br></br>
-# MAGIC ![Lesson02_Task_2_Notebook](./Includes/images/Lesson02_Task_2_Notebook.png)
+# MAGIC
 
 # COMMAND ----------
 
@@ -173,8 +187,6 @@
 # MAGIC
 # MAGIC **NOTE**: If you selected your all-purpose cluster, you may get a warning about how this will be billed as all-purpose compute. Production jobs should always be scheduled against new job clusters appropriately sized for the workload, as this is billed at a much lower rate.
 # MAGIC
-# MAGIC <br></br>
-# MAGIC ![Lesson02_Task_3_Notebook](./Includes/images/Lesson02_Task_3_Notebook.png)
 
 # COMMAND ----------
 

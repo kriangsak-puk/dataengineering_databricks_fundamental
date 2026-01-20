@@ -11,6 +11,13 @@
 
 # COMMAND ----------
 
+# MAGIC %sql
+# MAGIC USE CATALOG ${catalog};
+# MAGIC USE SCHEMA ${schema};
+
+# COMMAND ----------
+
+
 customers_sales_df = spark.sql('''
                                select distinct * from customers_sales_silver''')
 

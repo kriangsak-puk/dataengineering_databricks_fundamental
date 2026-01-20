@@ -30,22 +30,46 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC ##Classroom Setup
+# MAGIC ## Setup
 # MAGIC
+# MAGIC Open marketplace and get instant access with 
+# MAGIC 1. **Bank Loan Modelling Dataset**
+# MAGIC ![](./Includes/Bank Loan Modelling Dataset.png)
+# MAGIC 1. **Simulated Retail Customer Data**
+# MAGIC ![](./Includes/Simulated Retail Customer Data.png)
+
+# COMMAND ----------
+
+# MAGIC %run ./Includes/setup 
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SELECT current_catalog(), current_schema()
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_simulated_retail_customer_data;
+
+# COMMAND ----------
+
+# MAGIC %sql
+# MAGIC SHOW SCHEMAS IN databricks_bank_loan_modelling_dataset;
 
 # COMMAND ----------
 
 # MAGIC %md
 # MAGIC ## B. Explore Your Schema
-# MAGIC Complete the following to explore your **dbacademy.labuser** schema:
+# MAGIC Complete the following to explore your **lakeflow_job.default** schema:
 # MAGIC
-# MAGIC 1. In the left navigation bar, select the catalog icon:  ![Catalog Icon](./Includes/images/catalog_icon.png)
+# MAGIC 1. In the left navigation bar, select the catalog icon
 # MAGIC
-# MAGIC 2. Locate the catalog called **dbacademy** and expand the catalog.
+# MAGIC 2. Locate the catalog called **lakeflow_job** and expand the catalog.
 # MAGIC
-# MAGIC 3. Expand your **labuser** schema. 
+# MAGIC 3. Expand your **default** schema. 
 # MAGIC
-# MAGIC 4. Notice that within your schema you will find two tables named as **sales_bronze** and **orders_bronze**.
+# MAGIC 4. Notice that within your schema you will find two tables named as **sales_bronze** and **orders_bronze** from 1 Demo excercise.
 # MAGIC
 # MAGIC **Note:** If you have completed the 2L Exercise, you may find additional tables under your schema.
 
@@ -128,7 +152,7 @@
 # MAGIC
 # MAGIC    a. If you are not in your **Demo_03_Retail_Job_your-labuser-name** job, right-click the **Jobs and Pipelines** button in the sidebar and select *Open Link in New Tab*.
 # MAGIC
-# MAGIC    b. Find the **Demo_03_Retail_Job_your-labuser-name** job and go to the **Tasks** tab. 
+# MAGIC    b. Click the **+ Add task** button at below the and name it as **Demo_03_Retail_Job_your-labuser-name** 
 # MAGIC
 # MAGIC    c. Click **Add task**, then select **Notebook**.
 # MAGIC
@@ -143,8 +167,6 @@
 # MAGIC | **Compute**   | From the dropdown menu, select a **Serverless** cluster. (We will be using Serverless clusters for jobs in this course. You can specify a different cluster if required outside of this course.) |
 # MAGIC | **Depends On**| None |
 # MAGIC
-# MAGIC
-# MAGIC ![Lesson03_Notebook_task.png](./Includes/images/Lesson03_Notebook_task.png)
 # MAGIC
 
 # COMMAND ----------
@@ -191,7 +213,7 @@
 # MAGIC %md
 # MAGIC 1. Run the cell below to create a volume named **trigger_storage_location**. This volume will serve as the storage location to monitor for new files.  
 # MAGIC
-# MAGIC    It will be created within the **dbacademy** catalog, inside your unique **labuser** schema.
+# MAGIC    It will be created within the **lakeflow_job** catalog, inside your unique **default** schema.
 # MAGIC
 # MAGIC
 # MAGIC
@@ -204,13 +226,13 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 2. Complete the following steps to view your new volume **trigger_storage_location** in your **dbacademy.labuser** schema:
+# MAGIC 2. Complete the following steps to view your new volume **trigger_storage_location** in your **lakeflow_job.default** schema:
 # MAGIC
-# MAGIC    a. In the left navigation bar, click the **Catalog** ![Catalog Icon](./Includes/images/catalog_icon.png) icon.
+# MAGIC    a. In the left navigation bar, click the **Catalog** icon.
 # MAGIC
-# MAGIC    b. Locate and expand the catalog named **dbacademy**.
+# MAGIC    b. Locate and expand the catalog named **lakeflow_job**.
 # MAGIC
-# MAGIC    c. Expand your **labuser** schema.
+# MAGIC    c. Expand your **default** schema.
 # MAGIC
 # MAGIC    d. Expand **Volumes** and confirm that the **trigger_storage_location** volume appears.
 # MAGIC
@@ -230,13 +252,13 @@
 # COMMAND ----------
 
 # MAGIC %md
-# MAGIC 4. Run the following cell to get the path to this volume using the custom `DA` object created for this course.
+# MAGIC 4. Run the following cell to get the path to this volume.
 # MAGIC
 # MAGIC     **NOTE:** You can also select your volume under the catalog, click the three ellipses, and then select *Copy volume path* to get the volume path.
 
 # COMMAND ----------
 
-your_volume_path = (f"/Volumes/{DA.catalog_name}/{DA.schema_name}/trigger_storage_location/")
+your_volume_path = (f"/Volumes/{catalog_name}/{schema_name}/trigger_storage_location/")
 print(your_volume_path)
 
 # COMMAND ----------
@@ -277,8 +299,8 @@ print(your_volume_path)
 
 # COMMAND ----------
 
-print(f"catalog : {DA.catalog_name}")
-print(f"schema : {DA.schema_name}")
+print(f"catalog : {catalog_name}")
+print(f"schema : {schema_name}")
 
 # COMMAND ----------
 
@@ -288,8 +310,8 @@ print(f"schema : {DA.schema_name}")
 # MAGIC    a. Go back to your Task **ingesting_customers**. In **Task details** pane, under **Parameters**, click **Add**.
 # MAGIC
 # MAGIC    b. Set the following key-value pairs:
-# MAGIC    - **catalog** (key) =  **dbacademy** (value) 
-# MAGIC    - **schema** (key) = your **labuser** schema name from the above cell output (value) 
+# MAGIC    - **catalog** (key) =  **lakeflow_job** (value) 
+# MAGIC    - **schema** (key) = your **default** schema name from the above cell output (value) 
 # MAGIC
 # MAGIC    c. Click **Save task**.
 # MAGIC
@@ -307,7 +329,7 @@ print(f"schema : {DA.schema_name}")
 # MAGIC 4.  Close the **Creating customer table** notebook
 # MAGIC
 # MAGIC
-# MAGIC ![Lesson03_TriggerJob.png](./Includes/images/Lesson03_TriggerJob.png)
+# MAGIC ![Lesson03_TriggerJob.png](./Includes/3demo_filetrigger.png)
 # MAGIC
 # MAGIC
 # MAGIC    Your File Arrival Trigger and ingesting_customers Task should look like the above screenshot.
@@ -325,7 +347,10 @@ print(f"schema : {DA.schema_name}")
 
 # COMMAND ----------
 
-DA.copy_data()
+dbutils.fs.cp(
+    "/Volumes/databricks_simulated_retail_customer_data/v01/source_files/customers.csv",
+    "/Volumes/lakeflow_job/default/trigger_storage_location/customers.csv"
+)
 
 # COMMAND ----------
 

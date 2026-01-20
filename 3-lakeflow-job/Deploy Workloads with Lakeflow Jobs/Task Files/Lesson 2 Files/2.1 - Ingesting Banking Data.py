@@ -5,6 +5,8 @@
 # COMMAND ----------
 
 # MAGIC %sql
+# MAGIC USE CATALOG lakeflow_job;
+# MAGIC USE SCHEMA default;
 # MAGIC -- Defining schema for our master table
 # MAGIC CREATE TABLE IF NOT EXISTS bank_master_data_bronze (
 # MAGIC     id STRING PRIMARY KEY,
